@@ -2,6 +2,7 @@ import express,{Express, Request, Response} from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors'
 import {config} from './config'
+import { registerRoutes } from './routes';
 
 const PORT = config.server.port;
 
@@ -16,9 +17,7 @@ app.use(cors());
 
         console.log('connection to mongoDB successfully made')
         
-        app.get("/health", (req:Request, res:Response)=>{
-            res.status(200).json({message:"Server is running fine"});
-        })
+        registerRoutes(app);
         
         app.listen(PORT, ()=>{
            console.log(`Server listening on port ${PORT}`);
@@ -26,6 +25,6 @@ app.use(cors());
     } catch (error) {
         console.log('Could not make a connection to the database')
     }
-})
+})();
 
 
