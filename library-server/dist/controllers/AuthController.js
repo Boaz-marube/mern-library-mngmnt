@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const UserService_1 = require("../services/UserService");
+const LibraryErrors_1 = require("../utils/LibraryErrors");
 function handleRegister(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const user = req.body;
@@ -27,10 +28,41 @@ function handleRegister(req, res) {
             });
         }
         catch (error) {
-            res.status(500).json({ message: 'Unable to register user at this time', error: error.message });
+            if (error.message.includes('E11000 duplicate key error collection:')) {
+                res.status(409).json({ message: 'User with email already exists', error: error.message });
+            }
+            else {
+                res.status(500).json({ message: 'Unable to register user at this time', error: error.message });
+            }
+        }
+    });
+}
+function handleLogin(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const credentials = req.body;
+        try {
+            const loggedIn = yield (0, UserService_1.login)(credentials);
+            res.status(200).json({
+                message: "User logged in successfully",
+                user: {
+                    _id: loggedIn._id,
+                    type: loggedIn.type,
+                    firstName: loggedIn.firstName,
+                    lastName: loggedIn.lastName,
+                    email: loggedIn.email
+                }
+            });
+        }
+        catch (error) {
+            if (error instanceof LibraryErrors_1.InvalidUsernameOrPasswordError) {
+                res.status(401).json({ message: "Unable to login user at this time", error: error.message });
+            }
+            else {
+                res.status(500).json({ message: "Unable to login user at this time", error: error.message });
+            }
         }
     });
 }
 exports.default = {
-    handleRegister
+    handleRegister, handleLogin
 };
